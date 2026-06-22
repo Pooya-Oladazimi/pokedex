@@ -3,6 +3,7 @@ package poke
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -27,6 +28,7 @@ type CacheInterface interface {
 const PokeLocationUrlFirstPage = "https://pokeapi.co/api/v2/location-area/"
 
 func FetchPokeLocation(url string, cache CacheInterface) (PokeApiResp, bool, error) {
+	fmt.Println(url)
 	cacheVal, ok := cache.Get(url)
 	var body []byte
 	cachedResp := false
@@ -47,6 +49,7 @@ func FetchPokeLocation(url string, cache CacheInterface) (PokeApiResp, bool, err
 		if err != nil {
 			return PokeApiResp{}, cachedResp, err
 		}
+		cache.Add(url, body)
 		defer resp.Body.Close()
 	}
 	decoder := json.NewDecoder(bytes.NewReader(body))

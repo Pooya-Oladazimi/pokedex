@@ -10,14 +10,14 @@ type cacheEntry struct {
 	createdAt time.Time
 }
 
-type cache struct {
+type Cache struct {
 	enteries map[string]cacheEntry
 	interval time.Duration
 	mu       sync.RWMutex
 }
 
-func NewCache(i time.Duration) *cache {
-	c := cache{
+func NewCache(i time.Duration) *Cache {
+	c := Cache{
 		interval: i,
 		enteries: make(map[string]cacheEntry),
 	}
@@ -25,16 +25,16 @@ func NewCache(i time.Duration) *cache {
 	return &c
 }
 
-func (c *cache) Add(key string, val []byte) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+func (c *Cache) Add(key string, val []byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.enteries[key] = cacheEntry{
 		createdAt: time.Now(),
 		val:       val,
 	}
 }
 
-func (c *cache) Get(key string) ([]byte, bool) {
+func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	entry, ok := c.enteries[key]
@@ -44,19 +44,19 @@ func (c *cache) Get(key string) ([]byte, bool) {
 	return entry.val, true
 }
 
-func (c *cache) reapLoop() {
-	ticker := time.NewTicker(c.interval * time.Second)
+func (c *Cache) reapLoop() {
+	ticker := time.NewTicker(c.interval)
 	go func() {
 		defer ticker.Stop()
 		for {
 			<-ticker.C
-			c.mu.RLock()
+			c.mu.Lock()
 			for key, entry := range c.enteries {
 				if time.Since(entry.createdAt) > c.interval {
 					delete(c.enteries, key)
 				}
 			}
-			c.mu.RUnlock()
+			c.mu.Unlock()
 		}
 	}()
 }

@@ -4,8 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/Pooya-Oladazimi/pokedex/poke"
+	"github.com/Pooya-Oladazimi/pokedex/pokecache"
 	"github.com/Pooya-Oladazimi/pokedex/repl"
 	"os"
+	"time"
+)
+
+const (
+	CACHE_INTERVAL = 5 * time.Second
 )
 
 func main() {
@@ -32,6 +38,7 @@ func main() {
 		Callback:    repl.Mapb,
 	}
 	config := repl.Config{
+		Cache:    pokecache.NewCache(CACHE_INTERVAL),
 		Next:     poke.PokeLocationUrlFirstPage,
 		Previous: "",
 	}

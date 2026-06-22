@@ -3,6 +3,7 @@ package repl
 import (
 	"fmt"
 	"github.com/Pooya-Oladazimi/pokedex/poke"
+	"github.com/Pooya-Oladazimi/pokedex/pokecache"
 	"os"
 	"strings"
 )
@@ -19,20 +20,24 @@ type CliCommand struct {
 }
 
 type Config struct {
+	Cache    *pokecache.Cache
 	Next     string
 	Previous string
 }
 
 func Map(c *Config) error {
-	apiResponse, err := poke.FetchPokeLocation(c.Next)
+	apiResponse, cached, err := poke.FetchPokeLocation(c.Next, c.Cache)
 	if err != nil {
 		return err
+	}
+	if cached {
+		fmt.Println("---Cached response---")
 	}
 	for _, loc := range apiResponse.Results {
 		fmt.Println(loc.Name)
 	}
-	c.Next = apiResponse.Next
 	c.Previous = apiResponse.Previous
+	c.Next = apiResponse.Next
 	return nil
 }
 
@@ -40,9 +45,12 @@ func Mapb(c *Config) error {
 	if c.Previous == "" {
 		return fmt.Errorf("There is no previous page.")
 	}
-	apiResponse, err := poke.FetchPokeLocation(c.Previous)
+	apiResponse, cached, err := poke.FetchPokeLocation(c.Previous, c.Cache)
 	if err != nil {
 		return err
+	}
+	if cached {
+		fmt.Println("---Cached response---")
 	}
 	for _, loc := range apiResponse.Results {
 		fmt.Println(loc.Name)
