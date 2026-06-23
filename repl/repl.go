@@ -2,10 +2,12 @@ package repl
 
 import (
 	"fmt"
-	"github.com/Pooya-Oladazimi/pokedex/poke"
-	"github.com/Pooya-Oladazimi/pokedex/pokecache"
+	"math/rand/v2"
 	"os"
 	"strings"
+
+	"github.com/Pooya-Oladazimi/pokedex/poke"
+	"github.com/Pooya-Oladazimi/pokedex/pokecache"
 )
 
 func CleanInput(text string) []string {
@@ -86,6 +88,27 @@ func Explore(c *Config, params []Parameter) error {
 	return nil
 }
 
+func Catch(c *Config, params []Parameter) error {
+	if len(params) == 0 {
+		return fmt.Errorf("catch command needs a pokemon's name paramter.")
+	}
+	pokemonName := params[0].Value
+	pokemon, err := poke.FetchPokemon(pokemonName, c.Cache)
+	if err != nil {
+		return fmt.Errorf("Not able to fetch the pokemon: %s", err)
+	}
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+	upper := pokemon.BaseExperience / 10
+	shot := rand.IntN(upper + 1)
+	if shot == upper {
+		fmt.Printf("%s was caught!\n", pokemonName)
+	} else {
+		fmt.Printf("%s escaped!\n", pokemonName)
+	}
+
+	return nil
+}
+
 func CommndExit(c *Config, params []Parameter) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
@@ -99,6 +122,7 @@ Usage:
 map: Get the next 20 Poke's locations
 mapb: Get the previous 20 Poke's locations
 explore <location>: list all the Pokemons in a location
+catch <pokemon_name>: catch a pokemon
 help: Displays a help message
 exit: Exit the Pokedex
 `)

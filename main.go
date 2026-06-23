@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	CACHE_INTERVAL = 5 * time.Second
+	CACHE_INTERVAL = 20 * time.Second
 )
 
 func main() {
@@ -41,6 +41,11 @@ func main() {
 		Name:        "explore",
 		Description: "Explore a location and find all Pokemons",
 		Callback:    repl.Explore,
+	}
+	commands["catch"] = repl.CliCommand{
+		Name:        "catch",
+		Description: "Catch a Pokemon",
+		Callback:    repl.Catch,
 	}
 	config := repl.Config{
 		Cache:    pokecache.NewCache(CACHE_INTERVAL),
