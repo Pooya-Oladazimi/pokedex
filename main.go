@@ -37,11 +37,17 @@ func main() {
 		Description: "Fetch the previous page of poke's locations",
 		Callback:    repl.Mapb,
 	}
+	commands["explore"] = repl.CliCommand{
+		Name:        "explore",
+		Description: "Explore a location and find all Pokemons",
+		Callback:    repl.Explore,
+	}
 	config := repl.Config{
 		Cache:    pokecache.NewCache(CACHE_INTERVAL),
 		Next:     poke.PokeLocationUrlFirstPage,
 		Previous: "",
 	}
+	params := make([]repl.Parameter, 0)
 	for {
 		fmt.Print("Pokedex > ")
 		ok := buffer.Scan()
@@ -58,8 +64,11 @@ func main() {
 			fmt.Println("Unknown command")
 			continue
 		}
+		for _, token := range tokens[1:] {
+			params = append(params, repl.Parameter{Name: "", Value: token})
+		}
 
-		err := cmd.Callback(&config)
+		err := cmd.Callback(&config, params)
 		if err != nil {
 			fmt.Printf("Command exited with error: %v\n", err)
 			continue

@@ -16,7 +16,12 @@ func CleanInput(text string) []string {
 type CliCommand struct {
 	Name        string
 	Description string
-	Callback    func(c *Config) error
+	Callback    func(c *Config, p []Parameter) error
+}
+
+type Parameter struct {
+	Name  string
+	Value string
 }
 
 type Config struct {
@@ -25,7 +30,7 @@ type Config struct {
 	Previous string
 }
 
-func Map(c *Config) error {
+func Map(c *Config, params []Parameter) error {
 	apiResponse, cached, err := poke.FetchPokeLocation(c.Next, c.Cache)
 	if err != nil {
 		return err
@@ -41,7 +46,7 @@ func Map(c *Config) error {
 	return nil
 }
 
-func Mapb(c *Config) error {
+func Mapb(c *Config, params []Parameter) error {
 	if c.Previous == "" {
 		return fmt.Errorf("There is no previous page.")
 	}
@@ -60,18 +65,40 @@ func Mapb(c *Config) error {
 	return nil
 }
 
-func CommndExit(c *Config) error {
+func Explore(c *Config, params []Parameter) error {
+	if len(params) == 0 {
+		return fmt.Errorf("explore command needs a location parameter.")
+	}
+	location := params[0].Value
+	pokemons, cached, err := poke.FetchPokemonsInLocation(location, c.Cache)
+	if err != nil {
+		return err
+	}
+	if cached {
+		fmt.Println("---Cached response---")
+	}
+	fmt.Println("Exploring pastoria-city-area...")
+	fmt.Println("Found Pokemon:")
+	for _, pokE := range pokemons {
+		fmt.Printf("  - %s\n", pokE.Pokemon.Name)
+	}
+
+	return nil
+}
+
+func CommndExit(c *Config, params []Parameter) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func CommandHelp(c *Config) error {
+func CommandHelp(c *Config, params []Parameter) error {
 	fmt.Printf(`Welcome to the Pokedex!
 Usage:
 
 map: Get the next 20 Poke's locations
 mapb: Get the previous 20 Poke's locations
+explore <location>: list all the Pokemons in a location
 help: Displays a help message
 exit: Exit the Pokedex
 `)
