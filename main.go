@@ -3,11 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/Pooya-Oladazimi/pokedex/poke"
 	"github.com/Pooya-Oladazimi/pokedex/pokecache"
 	"github.com/Pooya-Oladazimi/pokedex/repl"
-	"os"
-	"time"
 )
 
 const (
@@ -47,13 +48,24 @@ func main() {
 		Description: "Catch a Pokemon",
 		Callback:    repl.Catch,
 	}
-	config := repl.Config{
-		Cache:    pokecache.NewCache(CACHE_INTERVAL),
-		Next:     poke.PokeLocationUrlFirstPage,
-		Previous: "",
+	commands["inspect"] = repl.CliCommand{
+		Name:        "inspect",
+		Description: "Inspect a catched Pokemon",
+		Callback:    repl.Inspect,
 	}
-	params := make([]repl.Parameter, 0)
+	commands["pokedex"] = repl.CliCommand{
+		Name:        "pokedex",
+		Description: "List all the catched Pokemons",
+		Callback:    repl.Pokedex,
+	}
+	config := repl.Config{
+		Cache:           pokecache.NewCache(CACHE_INTERVAL),
+		CatchedPokemons: make(map[string]poke.Pokemon),
+		Next:            poke.PokeLocationUrlFirstPage,
+		Previous:        "",
+	}
 	for {
+		params := make([]repl.Parameter, 0)
 		fmt.Print("Pokedex > ")
 		ok := buffer.Scan()
 		if !ok {

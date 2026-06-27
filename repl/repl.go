@@ -27,9 +27,10 @@ type Parameter struct {
 }
 
 type Config struct {
-	Cache    *pokecache.Cache
-	Next     string
-	Previous string
+	Cache           *pokecache.Cache
+	CatchedPokemons map[string]poke.Pokemon
+	Next            string
+	Previous        string
 }
 
 func Map(c *Config, params []Parameter) error {
@@ -102,10 +103,47 @@ func Catch(c *Config, params []Parameter) error {
 	shot := rand.IntN(upper + 1)
 	if shot == upper {
 		fmt.Printf("%s was caught!\n", pokemonName)
+		if _, ok := c.CatchedPokemons[pokemonName]; !ok {
+			c.CatchedPokemons[pokemonName] = pokemon
+		}
 	} else {
 		fmt.Printf("%s escaped!\n", pokemonName)
 	}
 
+	return nil
+}
+
+func Inspect(c *Config, params []Parameter) error {
+	if len(params) == 0 {
+		return fmt.Errorf("catch command needs a pokemon's name paramter.")
+	}
+	pokemonName := params[0].Value
+	pokemon, ok := c.CatchedPokemons[pokemonName]
+	if !ok {
+		return fmt.Errorf("%s is not catched yet. Catch it first!", pokemonName)
+	}
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+	fmt.Println("Stats:")
+	for i := range pokemon.Stats {
+		fmt.Printf("  -%s: %d\n", pokemon.Stats[i].Stat.Name, pokemon.Stats[i].BaseStat)
+	}
+	fmt.Println("Types:")
+	for i := range pokemon.Types {
+		fmt.Printf("  - %s\n", pokemon.Types[i].Type.Name)
+	}
+	return nil
+}
+
+func Pokedex(c *Config, params []Parameter) error {
+	if len(c.CatchedPokemons) == 0 {
+		return fmt.Errorf("You have not catched any pokemon yet! Catch some first!")
+	}
+	fmt.Println("Your Pokedex:")
+	for pokemonName := range c.CatchedPokemons {
+		fmt.Printf("  - %s\n", pokemonName)
+	}
 	return nil
 }
 
@@ -123,6 +161,8 @@ map: Get the next 20 Poke's locations
 mapb: Get the previous 20 Poke's locations
 explore <location>: list all the Pokemons in a location
 catch <pokemon_name>: catch a pokemon
+inspect <pokemon_name>: inspect a catched Pokemon's metadata
+pokedex: list all catched Pokemons
 help: Displays a help message
 exit: Exit the Pokedex
 `)
